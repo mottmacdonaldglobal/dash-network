@@ -15,6 +15,7 @@
     "author": "Alex Johnson alex@plot.ly",
     "license": "MIT",
     "dependencies": {
+        "d3": "^5.7.0",
         "ramda": "^0.25.0",
         "react": "15.4.2",
         "react-dom": "15.4.2"

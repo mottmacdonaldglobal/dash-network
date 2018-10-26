@@ -5,26 +5,49 @@ from dash.development.base_component import Component, _explicitize_args
 
 class Network(Component):
     """A Network component.
-ExampleComponent is an example component.
-It takes a property, `label`, and
-displays it.
-It renders an input with the property `value`
-which is editable by the user.
+Network graph component, based on D3 force layout
 
 Keyword arguments:
 - id (string; optional): The ID used to identify this component in Dash callbacks
-- label (string; required): A label that will be printed when this component is rendered.
-- value (string; optional): The value displayed in the input
+- width (number; optional): Width of the figure to draw, in pixels
+- height (number; optional): Height of the figure to draw, in pixels
+- data (dict; required): The network data. Should have the form:
+
+  `{nodes: [node0, node1, ...], links: [link0, link1, ...]}`
+
+nodes have the form:
+
+  `{id: 'node id'[, radius: number][, color: 'css color string']}`
+
+`id` is required, must be unique, and is used both in links and
+as the node text.
+`radius` is an optional relative radius, scaled by `maxRadius`
+`color` is an optional css color string.
+
+links have the form:
+
+  `{source: sourceId, target: targetId[, width: number]}`
+
+`source` and `target` are required, and must match node ids.
+`width` is an optional relative width, scaled by `maxLinkWidth`
+- dataVersion (string | number; optional): Optional version id for data, to avoid having to diff a large object
+- linkWidth (number; optional): Optional default width of links, in px
+- maxLinkWidth (number; optional): Optional maximum width of links, in px. If individual links have `width`,
+these will be scaled linearly so the largest one has width `maxLinkWidth`.
+- nodeRadius (number; optional): Optional default radius of nodes, in px
+- maxRadius (number; optional): Optional maximum radius of nodes, in px. If individual nodes have `radius`,
+these will be scaled linearly so the largest one has radius `maxRadius`.
+- selectedId (string; optional): The currently selected node id
 
 Available events: """
     @_explicitize_args
-    def __init__(self, id=Component.UNDEFINED, label=Component.REQUIRED, value=Component.UNDEFINED, **kwargs):
-        self._prop_names = ['id', 'label', 'value']
+    def __init__(self, id=Component.UNDEFINED, width=Component.UNDEFINED, height=Component.UNDEFINED, data=Component.REQUIRED, dataVersion=Component.UNDEFINED, linkWidth=Component.UNDEFINED, maxLinkWidth=Component.UNDEFINED, nodeRadius=Component.UNDEFINED, maxRadius=Component.UNDEFINED, selectedId=Component.UNDEFINED, **kwargs):
+        self._prop_names = ['id', 'width', 'height', 'data', 'dataVersion', 'linkWidth', 'maxLinkWidth', 'nodeRadius', 'maxRadius', 'selectedId']
         self._type = 'Network'
         self._namespace = 'dash_network'
         self._valid_wildcard_attributes =            []
         self.available_events = []
-        self.available_properties = ['id', 'label', 'value']
+        self.available_properties = ['id', 'width', 'height', 'data', 'dataVersion', 'linkWidth', 'maxLinkWidth', 'nodeRadius', 'maxRadius', 'selectedId']
         self.available_wildcard_properties =            []
 
         _explicit_args = kwargs.pop('_explicit_args')
@@ -32,7 +55,7 @@ Available events: """
         _locals.update(kwargs)  # For wildcard attrs
         args = {k: _locals[k] for k in _explicit_args if k != 'children'}
 
-        for k in [u'label']:
+        for k in [u'data']:
             if k not in args:
                 raise TypeError(
                     'Required argument `' + k + '` was not specified.')
