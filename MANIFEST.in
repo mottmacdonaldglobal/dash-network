@@ -1,0 +1,5 @@
+include dash_network/dash_network.min.js
+include dash_network/dash_network.dev.js
+include dash_network/metadata.json
+include dash_network/package.json
+include README.md
