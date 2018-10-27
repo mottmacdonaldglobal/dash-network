@@ -126,8 +126,6 @@ export default class NetworkD3 {
         let i;
 
         if(dataChange) {
-            const newData = JSON.parse(JSON.stringify(data));
-
             // Update nodes with new data.
             // The force simulation is connected to the self.nodeData array
             // and it adds other attributes to the array, so update this array in place
@@ -136,8 +134,8 @@ export default class NetworkD3 {
             for(i in self.nodeData) {
                 nodeMap[self.nodeData[i].id] = self.nodeData[i];
             }
-            for(i in newData.nodes) {
-                const newNode = newData.nodes[i];
+            for(i in data.nodes) {
+                const newNode = data.nodes[i];
                 newIDs[newNode.id] = 1;
                 const existingNode = nodeMap[newNode.id];
                 if(existingNode) {
@@ -161,8 +159,8 @@ export default class NetworkD3 {
             // Update links in place as well
             // Links array has no extra data so we can simply replace old with new
             // but convert ids to node references
-            for(i in newData.links) {
-                const linkDatai = newData.links[i];
+            for(i in data.links) {
+                const linkDatai = data.links[i];
                 self.linkData[i] = {
                     source: nodeMap[linkDatai.source],
                     target: nodeMap[linkDatai.target],
@@ -170,7 +168,7 @@ export default class NetworkD3 {
                 };
             }
             const oldLinkCount = self.linkData.length;
-            const newLinkCount = newData.links.length;
+            const newLinkCount = data.links.length;
             if(oldLinkCount > newLinkCount) {
                 self.linkData.splice(newLinkCount, oldLinkCount - newLinkCount);
             }
