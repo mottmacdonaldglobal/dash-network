@@ -5,6 +5,7 @@ const DIST_MULTIPLIER = 1;
 const DIST_EXTRA = 0;
 const REPULSION = -80;
 const REPULSIONPOWER = 0.3;
+const MAXREPULSIONLENGTH = 0.25;
 
 const dflts = {
     width: 500,
@@ -116,7 +117,7 @@ export default class NetworkD3 {
                 .attr('width', width)
                 .attr('height', height);
 
-            self.repulsion.distanceMax(Math.min(width, height) / 4);
+            self.repulsion.distanceMax(Math.min(width, height) * MAXREPULSIONLENGTH);
         }
 
         let links = self.linkGroup.selectAll('line');
