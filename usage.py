@@ -56,18 +56,24 @@ def net_data(selected):
     }
 
 app.layout = html.Div([
-    html.H2('Click a node to expand it'),
+    html.H2('Click a node to expand it, or the background to return'),
     Network(
         id='net',
-        data=net_data(''),
-        dataVersion=''
+        data=net_data('')
     ),
     html.Div(id='output')
 ])
 
-@app.callback(Output('net', 'data'), [Input('net', 'selectedId')])
+@app.callback(Output('net', 'data'),
+              [Input('net', 'selectedId')])
 def update_data(selected_id):
     return net_data(selected_id)
+
+@app.callback(Output('output', 'children'),
+              [Input('net', 'selectedId'), Input('net', 'data')])
+def list_connections(selected_id, data):
+    return 'You selected node "{}" on a graph with {} nodes and {} links'.format(
+        selected_id, len(data['nodes']), len(data['links']))
 
 if __name__ == '__main__':
     app.run_server(debug=True)
