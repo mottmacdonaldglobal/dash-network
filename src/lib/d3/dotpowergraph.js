@@ -147,7 +147,7 @@ var dotpowergraph;
         });
         
         const dedges = (digraph._edges);
-        let edges = [];
+        const edges = [];
 
         var edge;
         Object.keys(dedges).forEach(function(key){

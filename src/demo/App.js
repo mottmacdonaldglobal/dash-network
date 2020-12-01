@@ -42,10 +42,10 @@ export default class App extends Component {
             dataVersion: 1
         };
         this.setProps = this.setProps.bind(this);
-        this.mutateData = this.mutateData.bind(this);
+     //   this.mutateData = this.mutateData.bind(this);
 
-        this.period = 3;
-        this.updateInterval = setInterval(this.mutateData, 1000 * this.period);
+    //    this.period = 3;
+    //    this.updateInterval = setInterval(this.mutateData, 1000 * this.period);
     }
 
     setProps(newProps) {

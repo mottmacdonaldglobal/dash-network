@@ -28,10 +28,10 @@ export default class Network extends Component {
 Network.defaultProps = {
     width: 500,
     height: 500,
-    linkWidth: 4,
-    maxLinkWidth: 20,
-    nodeRadius: 10,
-    maxRadius: 20
+    padding: 4,
+    groupPadding: 20,
+    margin: 10,
+    groupMargin: 20
 };
 
 Network.propTypes = {
@@ -87,24 +87,24 @@ Network.propTypes = {
     /**
      * Optional default width of links, in px
      */
-    linkWidth: PropTypes.number,
+    padding: PropTypes.number,
 
     /**
      * Optional maximum width of links, in px. If individual links have `width`,
      * these will be scaled linearly so the largest one has width `maxLinkWidth`.
      */
-    maxLinkWidth: PropTypes.number,
+    groupPadding: PropTypes.number,
 
     /**
      * Optional default radius of nodes, in px
      */
-    nodeRadius: PropTypes.number,
+    margin: PropTypes.number,
 
     /**
     * Optional maximum radius of nodes, in px. If individual nodes have `radius`,
     * these will be scaled linearly so the largest one has radius `maxRadius`.
      */
-    maxRadius: PropTypes.number,
+    groupMargin: PropTypes.number,
 
     /**
      * The currently selected node id
