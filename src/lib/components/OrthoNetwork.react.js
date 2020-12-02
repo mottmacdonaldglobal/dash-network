@@ -1,13 +1,13 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
-import NetworkD3 from '../d3/network';
+import OrthoNetworkD3 from '../d3/orthonetwork';
 
 /**
- * Network graph component, based on D3 force layout
+ * Network graph component, using D3 and Webcola routing
  */
-export default class Network extends Component {
+export default class OrthoNetwork extends Component {
     componentDidMount() {
-        this.network = new NetworkD3(this.el, this.props, node => {
+        this.network = new OrthoNetworkD3(this.el, this.props, node => {
            const {setProps} = this.props;
            const selectedId = node && node.id;
 
@@ -25,16 +25,15 @@ export default class Network extends Component {
     }
 }
 
-Network.defaultProps = {
-    width: 1000,
-    height: 300,
-    padding: 4,
-    groupPadding: 20,
-    margin: 10,
-    groupMargin: 20
+OrthoNetwork.defaultProps = {
+    width: OrthoNetworkD3.DEFAULTS.width,
+    height: OrthoNetworkD3.DEFAULTS.height,
+    padding: OrthoNetworkD3.DEFAULTS.padding,
+    margin: OrthoNetworkD3.DEFAULTS.margin,
+    linkSettings: OrthoNetworkD3.DEFAULTS.linkSettings
 };
 
-Network.propTypes = {
+OrthoNetwork.propTypes = {
     /**
      * The ID used to identify this component in Dash callbacks
      */
@@ -55,6 +54,11 @@ Network.propTypes = {
      * Height of the figure to draw, in pixels
      */
     height: PropTypes.number,
+
+    /**
+     * Link settings - what edges looks like
+     */
+    edgeSettings: PropTypes.object,
 
     /**
      * The network data. Should have the form:
@@ -90,21 +94,9 @@ Network.propTypes = {
     padding: PropTypes.number,
 
     /**
-     * Optional maximum width of links, in px. If individual links have `width`,
-     * these will be scaled linearly so the largest one has width `maxLinkWidth`.
-     */
-    groupPadding: PropTypes.number,
-
-    /**
      * Optional default radius of nodes, in px
      */
     margin: PropTypes.number,
-
-    /**
-    * Optional maximum radius of nodes, in px. If individual nodes have `radius`,
-    * these will be scaled linearly so the largest one has radius `maxRadius`.
-     */
-    groupMargin: PropTypes.number,
 
     /**
      * The currently selected node id

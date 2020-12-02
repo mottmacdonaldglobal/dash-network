@@ -2,22 +2,31 @@
  https://github.com/plotly/dash-sunburst/blob/master/src/lib/d3/sunburst.js
 */
 
-/* eslint no-magic-numbers: ["error", { "ignore": [0,1,2,3.5,5] }]*/
+/* eslint no-magic-numbers: ["error", { "ignore": [0,1,2,5] }]*/
 
 import * as d3 from 'd3';
 import * as cola from 'webcola';
 
 
-const dflts = {
-    width: 2000,
-    height: 1000,
-    padding: 10,
-    margin : 20,
-};
-
+const LABEL_CORRECTION_HEIGHT = 50;
+const LABEL_CORRECTION_WIDTH = 50;
 
 
 export default class NetworkD3 {
+
+
+    static get DEFAULTS(){
+        return {
+            width: 2000,
+            height: 700,
+            padding: 10,
+            margin : 20,
+            linkSettings : {
+                nudge : 4 // separation between links in/out of nodes
+            }
+        };
+    }
+
     constructor(el, figure, onClick) {
         const self = this;
 
@@ -69,10 +78,11 @@ export default class NetworkD3 {
         const oldFigure = self.figure;
 
         // fill defaults in the new figure
-        const width = figure.width || dflts.width;
-        const height = figure.height || dflts.height;
-        const padding = figure.padding || dflts.padding;
-        const margin = figure.margin || dflts.margin;
+        const width = figure.width || NetworkD3.DEFAULTS.width;
+        const height = figure.height || NetworkD3.DEFAULTS.height;
+        const padding = figure.padding || NetworkD3.DEFAULTS.padding;
+        const margin = figure.margin || NetworkD3.DEFAULTS.margin;
+        const linkSettings = figure.linkSettings || NetworkD3.DEFAULTS.linkSettings;
         const {data, dataVersion} = figure;
 
         const newFigure = self.figure = {
@@ -175,8 +185,8 @@ export default class NetworkD3 {
                 });
 
             self.currentData.nodes.forEach(function (node, i) {
-                node.width = widths[node.id] +50
-                node.height = heights[node.id] +50
+                node.width = widths[node.id] +LABEL_CORRECTION_WIDTH
+                node.height = heights[node.id] +LABEL_CORRECTION_HEIGHT
             });
 
 
@@ -268,7 +278,7 @@ export default class NetworkD3 {
        // var routes = cola.gridify(pgLayout, 0, margin, groupMargin);
         self.gridLayout.cola.start(0, 0, 0, 1000, false);
         const gridrouter = myRouter(self.gridLayout.cola.nodes(), self.figure.margin)
-        var routes = gridrouter.routeEdges(self.gridLayout.cola.links(),0, function (e) { return e.source.routerNode.id; }, function (e) { return e.target.routerNode.id; });
+        var routes = gridrouter.routeEdges(self.gridLayout.cola.links(),4, function (e) { return e.source.routerNode.id; }, function (e) { return e.target.routerNode.id; });
 
         console.log(routes);
         self.svg.selectAll('path').remove();

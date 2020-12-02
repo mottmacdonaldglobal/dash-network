@@ -1,6 +1,6 @@
 /* eslint-disable import/prefer-default-export */
-import Network from './components/Network.react';
+import OrthoNetwork from './components/OrthoNetwork.react';
 
 export {
-    Network
+    OrthoNetwork
 };

@@ -1,7 +1,7 @@
 /* eslint no-magic-numbers: 0 */
 import React, {Component} from 'react';
 
-import {Network} from '../lib';
+import {OrthoNetwork} from '../lib';
 
 const IDLIST = [
     'pickle',
@@ -76,7 +76,7 @@ export default class App extends Component {
             <div>
                 <h2>Network Graph Demo</h2>
                 <p>Click a node to show its links</p>
-                <Network
+                <OrthoNetwork
                     setProps={this.setProps}
                     {...this.state}
                 />
