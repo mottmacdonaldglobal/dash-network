@@ -9,12 +9,10 @@ import * as cola from 'webcola';
 
 
 const dflts = {
-    width: 600,
-    height: 500,
+    width: 2000,
+    height: 1000,
     padding: 10,
-    groupPadding:0.01,
     margin : 20,
-    groupMargin : 15,
 };
 
 
@@ -41,7 +39,7 @@ export default class NetworkD3 {
         self.linkGroup = self.svg.append('g')
             .style('pointer-events', 'none');
         self.nodeGroup = self.svg.append('g');
-        self.labelGroup = self.svg.append('g')
+        self.nodeLabelGroup = self.svg.append('g')
             .style('pointer-events', 'none');
 
         self.figure = {};
@@ -74,18 +72,14 @@ export default class NetworkD3 {
         const width = figure.width || dflts.width;
         const height = figure.height || dflts.height;
         const padding = figure.padding || dflts.padding;
-        const groupPadding = figure.groupPadding || dflts.groupPadding;
         const margin = figure.margin || dflts.margin;
-        const groupMargin = figure.groupMargin || dflts.groupMargin
         const {data, dataVersion} = figure;
 
         const newFigure = self.figure = {
             width,
             height,
             padding,
-            groupPadding,
             margin,
-            groupMargin,
             data,
             dataVersion
         };
@@ -95,22 +89,22 @@ export default class NetworkD3 {
 
         const sizeChange = change.width || change.height;
         const dataChange = change.data;
-        const paddingChange = change.padding || change.groupPadding;
-        const marginChange = change.margin || change.groupMargin;
+        const paddingChange = change.padding;
+        const marginChange = change.margin;
 
         if(sizeChange) {
             self.svg
-                .attr('viewBox', [-width / 2, -height / 2, width, height])
+                .attr('viewBox', [0, 0, width, height])
                 .attr('width', width)
                 .attr('height', height);
         }
 
         let links = self.linkGroup.selectAll('.links');
         let nodes = self.nodeGroup.selectAll('.node');
-        let labels = self.labelGroup.selectAll('.label');
+        let nodeLabels = self.nodeLabelGroup.selectAll('.label');
         let i;
 
-        if (dataChange){
+        if (dataChange || marginChange || paddingChange ){
 
             // Update nodes with new data.
             // and it adds other attributes to the array, so update this array in place
@@ -121,20 +115,23 @@ export default class NetworkD3 {
                 nodeMap[self.currentData.nodes[i].id] = self.currentData.nodes[i];
             }
 
-            for(i in data.nodes) {
-                const newNode = data.nodes[i];
-                newIDs[newNode.id] = 1;
+            data.nodes.forEach(function (node, i) {
+                node.name = node.label = node.id;
+                node.width = node.height = 70;
+                const newNode = node;
+                newIDs[newNode.id] = 1
                 const existingNode = nodeMap[newNode.id];
                 if(existingNode) {
                     // existingNode.radius = newNode.radius;
-                    // TODO 
-                    existingNode.color = newNode.color;
+                    // TODO change properties
+                    //existingNode.color = newNode.color;
                 }
                 else {
                     self.currentData.nodes.push(newNode);
                     nodeMap[newNode.id] = newNode;
                 }
-            }
+            });
+
             for(i = self.currentData.nodes.length - 1; i >= 0; i--) {
                 const oldId = self.currentData.nodes[i].id;
                 if(!newIDs[oldId]) {
@@ -149,8 +146,8 @@ export default class NetworkD3 {
             for(i in data.links) {
                 const linkDatai = data.links[i];
                 self.currentData.links[i] = {
-                    source: nodeMap[linkDatai.source].id,
-                    target: nodeMap[linkDatai.target].id,
+                    source: nodeMap[linkDatai.source],
+                    target: nodeMap[linkDatai.target],
                     index: i
                 };
             }
@@ -161,19 +158,28 @@ export default class NetworkD3 {
             }
 
             
-            // Now propagate the new data (& attributes) to the DOM elements
-            // Positioning by cola.
-            console.log(self.currentData);
+          
+            
+            
+            
+            const widths = [];
+            const heights = []; 
+            nodeLabels = nodeLabels
+                .data(self.currentData.nodes)
+                .enter().append("text")
+                .attr("class", "label")
+                .text(d => d.name)
+                .each(function(t){
+                    widths[t.id] = this.getBBox().width;
+                    heights[t.id]= this.getBBox().height;
+                });
 
-            self.currentData.nodes.forEach(v => {
-                v.width = 70;
-                v.height = 70;
+            self.currentData.nodes.forEach(function (node, i) {
+                node.width = widths[node.id] +50
+                node.height = heights[node.id] +50
             });
 
-            console.log(self.currentData)
 
-            const pgLayout = cola.powerGraphGridLayout(self.currentData, [this.width, this.height], self.grouppadding);
-            
             nodes = nodes
                 .data(self.currentData.nodes);
             nodes.exit().remove();
@@ -182,47 +188,44 @@ export default class NetworkD3 {
                 .attr("class", "node")
                 .call(self.drag())
                 .merge(nodes);
-            nodes.append("title").text(d => d.name);
 
-            labels = labels
-                .data(self.currentData.nodes)
-                .enter().append("text")
-                .attr("class", "label");
-                //.text(d => d.name.replace(/^u/, ''));
-
-       //     self.gridify(pgLayout, self.margin, self.groupMargin);
+            // Now propagate the new data (& attributes) to the DOM elements
+            // Positioning by cola.
+            this.gridLayout = myGridLayout(self.currentData, [width, height]);
+            self.gridify();
         }
 
         self.links = links;
         self.nodes = nodes;
-        self.labels = labels;
+        self.nodeLabels = nodeLabels;
     }
 
     getDragPos(d)
     {
-        const p = self.getEventPos(d.sourceEvent), startPos = self.eventStart[d.subject.routerNode.id];
-        return { x: d.subject.routerNode.bounds.x + p.x - startPos.x, y: d.subject.routerNode.bounds.y + p.y - startPos.y };
+        const self = this;
+        const p = self.getEventPos(d3.event), startPos = self.eventStart[d.routerNode.id];
+        return { x: d.routerNode.bounds.x + p.x - startPos.x, y: d.routerNode.bounds.y + p.y - startPos.y };
     }
 
 
     getEventPos(ev) {
-        return { x: ev.clientX, y: ev.clientY };
+        return { x: ev.x, y: ev.y };
     }
     
     drag() {
         const self = this;
 
         const dragstarted = d => {
-
+ 
             self.ghosts = [1, 2].map(i => self.svg.append('rect')
                 .attr("class" ,"ghost")
-                .attr("x" ,d.subject.routerNode.bounds.x)
-                .attr("y" ,d.subject.routerNode.bounds.y)
-                .attr("width" ,d.subject.routerNode.bounds.X - d.subject.routerNode.bounds.x)
-                .attr("height" ,d.subject.routerNode.bounds.Y - d.subject.routerNode.bounds.y)
+                .attr("x" ,d.routerNode.bounds.x)
+                .attr("y" ,d.routerNode.bounds.y)
+                .attr("width" ,d.routerNode.bounds.X - d.routerNode.bounds.x)
+                .attr("height" ,d.routerNode.bounds.Y - d.routerNode.bounds.y)
             );
 
-            self.eventStart[d.subject.routerNode.id] = self.getEventPos(d.sourceEvent);
+            self.eventStart[d.routerNode.id] = self.getEventPos(d3.event);
             d.fx = d.x;
             d.fy = d.y;
         }
@@ -238,12 +241,12 @@ export default class NetworkD3 {
 
         const dragended = d => {
             const dropPos = self.getDragPos(d);
-            delete self.eventStart[d.subject.routerNode.id];
-            d.subject.x = dropPos.x;
-            d.subject.y = dropPos.y;
+            delete self.eventStart[d.routerNode.id];
+            d.x = dropPos.x;
+            d.y = dropPos.y;
             self.ghosts.forEach(g => g.remove());
             if (Object.keys(self.eventStart).length === 0) {
-                // self.gridify(pgLayout, margin, groupMargin);
+                self.gridify();
             }
             d.fx = null;
             d.fy = null;
@@ -256,8 +259,18 @@ export default class NetworkD3 {
     }
 
 
-    gridify(pgLayout, margin, groupMargin) {
-        var routes = cola.gridify(pgLayout, 5, margin, groupMargin);
+    gridify() {
+        /**
+         * 
+         */
+
+        const self = this;
+       // var routes = cola.gridify(pgLayout, 0, margin, groupMargin);
+        self.gridLayout.cola.start(0, 0, 0, 1000, false);
+        const gridrouter = myRouter(self.gridLayout.cola.nodes(), self.figure.margin)
+        var routes = gridrouter.routeEdges(self.gridLayout.cola.links(),0, function (e) { return e.source.routerNode.id; }, function (e) { return e.target.routerNode.id; });
+
+        console.log(routes);
         self.svg.selectAll('path').remove();
         routes.forEach(route => {
             var cornerradius = 5;
@@ -281,20 +294,19 @@ export default class NetworkD3 {
                 .attr('d', p.routepath)
                 .attr('fill', 'none');
         });
-        self.svg.selectAll(".label").transition().attr("x", d => d.routerNode.bounds.cx())
-            .attr("y", function (d) {
-            var h = d.getBBox().height;
-            return d.bounds.cy() + h / 3.5;
-        });
+        self.svg.selectAll(".label").transition()
+            .attr("dominant-baseline", "middle")
+            .attr("text-anchor", "middle")
+            .attr("x", function (d) {  
+                return d.routerNode.bounds.x + d.routerNode.bounds.width()/2;
+            })
+            .attr("y", function (d) {           
+                return d.routerNode.bounds.y + d.routerNode.bounds.height()/2;
+            });
         self.svg.selectAll(".node").transition().attr("x", d => d.routerNode.bounds.x)
             .attr("y", d => d.routerNode.bounds.y)
             .attr("width", d => d.routerNode.bounds.width())
             .attr("height", d => d.routerNode.bounds.height());
-        const groupPadding = margin - groupMargin;
-        self.svg.selectAll(".group").transition().attr('x', d => d.routerNode.bounds.x - groupPadding)
-            .attr('y', d => d.routerNode.bounds.y + 2 * groupPadding)
-            .attr('width', d => d.routerNode.bounds.width() - groupPadding)
-            .attr('height', d => d.routerNode.bounds.height() - groupPadding);
     }
 
 };
@@ -333,3 +345,38 @@ function diff(oldObj, newObj) {
     return hasChange && out;
 }
 
+
+function myRouter(nodes, margin) {
+    nodes.forEach(function (d) {
+        d.routerNode = {
+            name: d.name,
+            bounds: d.bounds.inflate(-margin)
+        };
+    });
+    var gridRouterNodes = nodes.map(function (d, i) {
+        d.routerNode.id = i;
+        return d.routerNode;
+    });
+    return new cola.GridRouter(gridRouterNodes, {
+        getChildren: function (v) { return v.children; },
+        getBounds: function (v) { return v.bounds; }
+    }, margin);
+}
+
+
+
+function myGridLayout(graph, size) {
+
+    return {
+        cola: new cola.Layout()
+            .convergenceThreshold(1e-3)
+            .size(size)
+            .avoidOverlaps(true)
+            .nodes(graph.nodes)
+            .links(graph.links)
+            .linkDistance(100)
+            .symmetricDiffLinkLengths(50)
+            .start(50, 0, 100, 0, false)
+    };
+}
+exports.myGridLayout = myGridLayout;

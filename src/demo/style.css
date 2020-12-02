@@ -1,0 +1,64 @@
+
+.node {
+    cursor: move;
+    fill: white;
+    rx: 3;
+    ry: 3;
+    stroke: black;
+}
+
+.group {
+    stroke: none;
+    fill: #fff;
+    stroke-width: 6;
+    rx: 1;
+    ry: 1;
+    stroke: #ffc0b0;
+}
+
+.link {
+    stroke: darkslategrey;
+    fill: none;
+    stroke-width: 2px;
+    stroke-opacity: 1;
+    marker-end: url(#end-arrow);
+}
+
+.linkarrow {
+    stroke: darkslategrey;
+    fill: darkslategrey;
+    stroke-width: 0px;
+    stroke-opacity: 1;
+    marker-end: url(#end-arrow);
+}
+
+.linkoutline {
+    stroke: white;
+    stroke-width: 4px;
+    fill: none;
+}
+
+.linkarrowoutline {
+    stroke: none;
+    stroke-width: 1px;
+    fill: white;
+}
+
+.label {
+    font-family: Verdana;
+    font-size: 15px;
+    text-anchor: middle;
+    cursor: move;
+}
+
+.swatchlabel {
+    font-family: Verdana;
+    font-size: 15px;
+}
+
+.ghost {
+    fill: red;
+    fill-opacity: 0.5;
+    stroke: red;
+    stroke-width: 2;
+}
