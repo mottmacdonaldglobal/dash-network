@@ -4,7 +4,7 @@
     "description": "D3-based network graph component for Dash",
     "main": "build/index.js",
     "scripts": {
-        "start": "webpack-serve ./webpack.serve.config.js --open",
+        "start": "webpack-serve ./webpack.serve.config.js",
         "validate-init": "python _validate_init.py",
         "prepublish": "npm run validate-init",
         "build:js-dev": "webpack --mode development",
