@@ -60,6 +60,7 @@ OrthoNetwork.propTypes = {
      */
     edgeSettings: PropTypes.object,
 
+
     /**
      * The network data. Should have the form:
      *
@@ -79,7 +80,11 @@ OrthoNetwork.propTypes = {
      *   `{source: sourceId, target: targetId[, width: number]}`
      *
      * `source` and `target` are required, and must match node ids.
-     * `width` is an optional relative width, scaled by `maxLinkWidth`
+     * 
+     * ---------------------
+     * 
+     * Alternatively you can define data using 'dot' format:
+     * 
      */
     data: PropTypes.object.isRequired,
 

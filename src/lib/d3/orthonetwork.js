@@ -6,6 +6,7 @@
 
 import * as d3 from 'd3';
 import * as cola from 'webcola';
+import * as graphDotLib from 'graphlib-dot'
 
 
 const LABEL_CORRECTION_HEIGHT = 50;
@@ -123,6 +124,11 @@ export default class NetworkD3 {
 
             for (i in self.currentData.nodes){
                 nodeMap[self.currentData.nodes[i].id] = self.currentData.nodes[i];
+            }
+
+            if (data.dot){
+                const digraph = graphDotLib.read(data.dot);
+                buildDataFromDot(data.dot)
             }
 
             data.nodes.forEach(function (node, i) {
@@ -356,6 +362,10 @@ function diff(oldObj, newObj) {
 }
 
 
+// ***************************************************************************************************************************************************/
+
+// Modified from webcola library
+
 function myRouter(nodes, margin) {
     nodes.forEach(function (d) {
         d.routerNode = {
@@ -390,3 +400,34 @@ function myGridLayout(graph, size) {
     };
 }
 exports.myGridLayout = myGridLayout;
+
+// ************************************************************************************************************************8
+
+function buildDataFromDot(dotString){
+    const digraph = graphDotLib.read(dotString);
+
+    const nodeNames = digraph.nodes();
+    const nodes = new Array(nodeNames.length);
+    nodeNames.forEach(function (name, i) {
+        var v = nodes[i] = digraph.node(name);
+        v.id = i;
+        v.name = name;
+    });
+        
+
+    const dedges = (digraph._edges);
+    const edges = [];
+
+    var edge;
+    Object.keys(dedges).forEach(function(key){
+        edge = dedges[key];
+        edges.push({ source: digraph.node(edge.u).id, target: digraph.node(edge.v).id });
+
+    });
+
+    return {
+        nodes: nodes,
+        links: edges
+    }
+
+}

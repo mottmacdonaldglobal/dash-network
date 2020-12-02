@@ -3,18 +3,7 @@ import React, {Component} from 'react';
 
 import {OrthoNetwork} from '../lib';
 
-const IDLIST = [
-    'pickle',
-    'tortilla',
-    'mustard',
-    'lettuce',
-    'tomato',
-    'pineapple',
-    'ice cream',
-    'banana',
-    'salami',
-    'smoked salmon'
-];
+
 
 export default class App extends Component {
 
@@ -33,11 +22,11 @@ export default class App extends Component {
                     {source: 'mayo', target: 'blue cheese'},
                     {source: 'mayo', target: 'bread'},
                     {source: 'blue cheese', target: 'bread'},
-                    {source: 'blue cheese', target: 'jelly'},
                     {source: 'bread', target: 'peanut butter'},
                     {source: 'bread', target: 'jelly'},
                     {source: 'peanut butter', target: 'jelly'}
-                ]
+                ],
+                dot : 'hello'
             },
             dataVersion: 1
         };
@@ -51,6 +40,8 @@ export default class App extends Component {
     setProps(newProps) {
         this.setState(newProps);
     }
+
+
 
     render() {
         const {selectedId, data} = this.state;
