@@ -1,0 +1,81 @@
+digraph G {
+
+  ///////////////////////////////////////
+  // Global setup
+  ///////////////////////////////////////
+
+  node [shape=rect];
+
+  //graph [splines=ortho,nodesep=.6]
+  //rankdir=LR;
+  //ranksep=1;
+
+
+  ///////////////////////////////////////
+  // Node list
+  ///////////////////////////////////////
+
+
+  r01    [label="HV Room 1"];
+  r11    [label="Transformer Room 1"];
+  r21    [label="Main Switchboard Room 1"];
+  r31    [label="UPS Room 1"];
+  r41    [label="Mech Room 1"];
+  r51    [label="Comms Room 1"];
+
+  /*tunnel001  [label="Tunnel|1"];
+
+  t01    [label="Common Comms Tray 1|1"];
+  t02    [label="Common Comms Tray 1|2"];
+  t03    [label="Common Comms Tray 1|3"];
+  t04    [label="Common Comms Tray 1|4"];
+  t05    [label="Common Comms Tray 1|5"];
+  t06    [label="Common Comms Tray 1|6"];
+
+  d01    [label="Common mech duct 1|1"];
+  d02    [label="Common mech duct 1|2"];
+  d03    [label="Common mech duct 1|3"];
+  d04    [label="Common mech duct 1|4"];
+  d05    [label="Common mech duct 1|5"];*/
+
+  node [shape=point, color=pink];
+  tn1  [label="Tunnel|1"];
+
+  node [shape=point, color=red];
+  t01    [label="Common Comms Tray 1", color=red, splines=ortho];
+
+
+  node [shape=point, color=green];
+  d01    [label="Common mech duct 1|1"];
+
+
+
+  ///////////////////////////////////////
+  // Adding edges
+  ///////////////////////////////////////
+
+  //Comms
+  t01 -> r01  [label="100 tray", color=red];
+  t01 -> r11  [label="100 tray", color=red];
+  t01 -> r21  [label="100 tray", color=red];
+  t01 -> r31  [label="100 tray", color=red];
+  t01 -> r41  [label="100 tray", color=red];
+  t01 -> r51  [label="100 tray", color=red];
+
+  //Mech
+  d01 -> r01  [label="300x300", color=green];
+  d01 -> r11  [label="300x300", color=green];
+  d01 -> r21  [label="300x300", color=green];
+  d01 -> r31  [label="300x300", color=green];
+  d01 -> r41  [label="300x300", color=green];
+  //Elec HV
+  tn1 -> r01 [label="450 ladder", color=pink];
+  
+  r01 -> r11 [label="300 ladder", color=pink];
+  //Elec LV
+  r11 -> r21 [label="3x900 ladder", color=blue];
+  r21 -> {r31 r41 r51} [label="3x900 ladder", color=blue];
+  r31 -> r51 [label="3x900 ladder", color=blue];
+
+
+}

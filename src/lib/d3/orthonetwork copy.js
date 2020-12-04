@@ -34,9 +34,8 @@ export default class NetworkD3 {
         self.update = self.update.bind(self);
         self._update = self._update.bind(self);
 
-        self.tick = self.tick.bind(self);
+        // self.tick = self.tick.bind(self);
         self.drag = self.drag.bind(self);
-
        // self.wrappedClick = self.wrappedClick.bind(self);
        // self.wrappedDrag = self.wrappedDrag.bind(self);
 
@@ -59,22 +58,21 @@ export default class NetworkD3 {
 
         self.initialized = false;
 
-        
-
         self.currentData = {
             nodes : [],
             links : []
         }
 
-        self._promise = Promise.resolve();
+     //   self._promise = Promise.resolve();
 
         self.update(figure);
     }
 
     update(figure) {
         const self = this;
+        self._update(figure);
         // ensure any previous transition is complete before we start
-        self._promise = self._promise.then(() => self._update(figure));
+        //self._promise = self._promise.then(() => self._update(figure));
     }
 
     _update(figure) {
@@ -113,15 +111,12 @@ export default class NetworkD3 {
                 .attr('height', height);
         }
 
-        let nodeLabels = self.nodeLabelGroup.selectAll('.label');
+        let links = self.linkGroup.selectAll('.links');
         let nodes = self.nodeGroup.selectAll('.node');
+        let nodeLabels = self.nodeLabelGroup.selectAll('.label');
         let i;
 
         if (dataChange || marginChange || paddingChange ){
-
-            if (self.gridLayout){
-                self.gridLayout.cola.stop()
-            }
 
             // Update nodes with new data.
             // and it adds other attributes to the array, so update this array in place
@@ -132,26 +127,18 @@ export default class NetworkD3 {
                 nodeMap[self.currentData.nodes[i].id] = self.currentData.nodes[i];
             }
 
-            if (data.dot){           
-                const newData = buildDataFromDot(data.dot)
-                data.nodes = newData.nodes;
-                data.links = newData.links;
-                delete data.dot
-            }
+            //if (data.dot){
+            //
+            //    buildDataFromDot(data.dot)
+            //}
 
             data.nodes.forEach(function (node, i) {
-              //  node.name = node.label = node.id;
+                node.name = node.label = node.id;
                 node.width = node.height = 70;
-                if(node.shape === 'point'){
-                    console.log('point')
-                    node.width = node.height = 1;
-                }
                 const newNode = node;
                 newIDs[newNode.id] = 1
                 const existingNode = nodeMap[newNode.id];
                 if(existingNode) {
-                    console.log(existingNode)
-
                     // existingNode.radius = newNode.radius;
                     // TODO change properties
                     //existingNode.color = newNode.color;
@@ -161,6 +148,7 @@ export default class NetworkD3 {
                     nodeMap[newNode.id] = newNode;
                 }
             });
+
             for(i = self.currentData.nodes.length - 1; i >= 0; i--) {
                 const oldId = self.currentData.nodes[i].id;
                 if(!newIDs[oldId]) {
@@ -185,14 +173,24 @@ export default class NetworkD3 {
             if(oldLinkCount > newLinkCount) {
                 self.currentData.links.splice(newLinkCount, oldLinkCount - newLinkCount);
             }  
-
-            nodeLabels = nodeLabels.data(self.currentData.nodes);
-            nodeLabels.exit().remove();
-
-            nodeLabels
+            
+            const widths = {}; 
+            const heights = {}; 
+            nodeLabels = nodeLabels
+                .data(self.currentData.nodes)
                 .enter().append("text")
-                .attr("class", "label")  
-                .merge(nodeLabels)
+                .attr("class", "label")
+                .text(d => d.name)
+                .each(function(t){
+                    widths[t.id] = this.getBBox().width;
+                    heights[t.id]= this.getBBox().height;
+                });
+
+            self.currentData.nodes.forEach(function (node, i) {
+                node.width = widths[node.id] +LABEL_CORRECTION_WIDTH
+                node.height = heights[node.id] +LABEL_CORRECTION_HEIGHT
+            });
+
 
             nodes = nodes
                 .data(self.currentData.nodes);
@@ -205,15 +203,13 @@ export default class NetworkD3 {
 
             // Now propagate the new data (& attributes) to the DOM elements
             // Positioning by cola.
-            self.gridLayout = this.layout(self.currentData, [width, height]);
+            this.gridLayout = myGridLayout(self.currentData, [width, height]);
             self.gridify();
-
-            self.nodes = nodes;
-            
-           // self.nodeLabels = nodeLabels;
         }
 
-
+        self.links = links;
+        self.nodes = nodes;
+        self.nodeLabels = nodeLabels;
     }
 
     getDragPos(d)
@@ -227,32 +223,12 @@ export default class NetworkD3 {
     getEventPos(ev) {
         return { x: ev.x, y: ev.y };
     }
-
-    tick() {
-        const self = this;
-        return () => {
-          // self.linkGroup.selectAl
-                //.attr('x1', d => d.source.x)
-                //.attr('y1', d => d.source.y)
-                //.//attr('x2', d => d.target.x)
-                //.attr('y2', d => d.target.y);
-                
-           // self.nodeGroup.selectAll('.node')
-           //     .attr('cx', d => d.x)
-           //     .attr('cy', d => d.y);
-
-            // // self.nodeLabels
-            // //     .attr('x', d => d.x)
-            // //     .attr('y', d => d.y);
-        }
-    }
     
     drag() {
         const self = this;
 
         const dragstarted = d => {
-
-
+ 
             self.ghosts = [1, 2].map(i => self.svg.append('rect')
                 .attr("class" ,"ghost")
                 .attr("x" ,d.routerNode.bounds.x)
@@ -294,23 +270,6 @@ export default class NetworkD3 {
             .on('end', dragended);
     }
 
-    
-
-    layout(graph, size) {
-        const self = this;
-
-        return {
-            cola: new cola.Layout()
-                .size(size)
-                .avoidOverlaps(true)
-                .nodes(graph.nodes)
-                .links(graph.links)
-                .symmetricDiffLinkLengths(35)
-               .on('tick', self.tick())
-               .start(50, 15, 100, 0, false)
-        };
-    }
-
 
     gridify() {
         /**
@@ -318,67 +277,35 @@ export default class NetworkD3 {
          */
 
         const self = this;
+       // var routes = cola.gridify(pgLayout, 0, margin, groupMargin);
+        self.gridLayout.cola.start(0, 0, 0, 1000, false);
+        const gridrouter = myRouter(self.gridLayout.cola.nodes(), self.figure.margin)
+        //var routes = gridrouter.routeEdges(self.gridLayout.cola.links(),4, function (e) { return e.source.routerNode.id; }, function (e) { return e.target.routerNode.id; });
 
-
-
-
-        const widths = [];
-        const heights = []; 
-
-        const nodeLabels = self.nodeLabelGroup.selectAll('.label');
-
-        nodeLabels
-            .filter(function(d) {return d.shape !=='point'})
-            .text(d => d.label)
-            .each(function(t){
-                widths[t.id] = this.getBBox().width;
-                heights[t.id]= this.getBBox().height;
-            });
-
-
-            self.currentData.nodes.forEach(function (node, i) {
-                if (widths[node.id]){
-                    console.log(node, widths[node.id])
-                    node.width = widths[node.id] +LABEL_CORRECTION_HEIGHT
-                    node.height = heights[node.id] +LABEL_CORRECTION_HEIGHT
-                } else {
-                    node.width = node.height = 50;
-                }
-
-            });
-        
-        self.gridLayout.cola.start(0, 0,0, 100, false);    
-
-        const gridRouter = myRouter(self.gridLayout.cola.nodes(), self.figure.margin)
-            
-        var routes = gridRouter.routeEdges(self.gridLayout.cola.links(), 4, function (e) { return e.source.routerNode.id; }, function (e) { return e.target.routerNode.id; });
-
-         self.svg.selectAll('path').remove();
-         routes.forEach(route => {
-             var cornerradius = 5;
-             var arrowwidth = 3;
-             var arrowheight = 7;
-             var p = cola.GridRouter.getRoutePath(route, cornerradius, arrowwidth, arrowheight);
-             if (arrowheight > 0) {
-                 self.svg.append('path')
-                     .attr('class', 'linkarrowoutline')
-                     .attr('d', p.arrowpath);
-         self.svg.append('path')
-                     .attr('class', 'linkarrow')
-             .attr('d', p.arrowpath);
-             }
-             self.svg.append('path')
-                 .attr('class', 'linkoutline')
-                 .attr('d', p.routepath)
-                 .attr('fill', 'none');
-             self.svg.append('path')
-                 .attr('class', 'link')
-                 .attr('d', p.routepath)
-                 .attr('fill', 'none');
-         });
-
-
-        self.svg.selectAll(".label").transition().text(d => d.label)
+        // self.svg.selectAll('path').remove();
+        // routes.forEach(route => {
+        //     var cornerradius = 5;
+        //     var arrowwidth = 3;
+        //     var arrowheight = 7;
+        //     var p = cola.GridRouter.getRoutePath(route, cornerradius, arrowwidth, arrowheight);
+        //     if (arrowheight > 0) {
+        //         self.svg.append('path')
+        //             .attr('class', 'linkarrowoutline')
+        //             .attr('d', p.arrowpath);
+        //         self.svg.append('path')
+        //             .attr('class', 'linkarrow')
+        //             .attr('d', p.arrowpath);
+        //     }
+        //     self.svg.append('path')
+        //         .attr('class', 'linkoutline')
+        //         .attr('d', p.routepath)
+        //         .attr('fill', 'none');
+        //     self.svg.append('path')
+        //         .attr('class', 'link')
+        //         .attr('d', p.routepath)
+        //         .attr('fill', 'none');
+        // });
+        self.svg.selectAll(".label").transition()
             .attr("dominant-baseline", "middle")
             .attr("text-anchor", "middle")
             .attr("x", function (d) {  
@@ -387,13 +314,12 @@ export default class NetworkD3 {
             .attr("y", function (d) {           
                 return d.routerNode.bounds.y + d.routerNode.bounds.height()/2;
             });
-        self.svg.selectAll(".node").transition()
-            .attr("x", d => d.routerNode.bounds.x)
+        self.svg.selectAll(".node").transition().attr("x", d => d.routerNode.bounds.x)
             .attr("y", d => d.routerNode.bounds.y)
             .attr("width", d => d.routerNode.bounds.width())
             .attr("height", d => d.routerNode.bounds.height());
-
     }
+
 };
 
 
@@ -433,10 +359,12 @@ function diff(oldObj, newObj) {
 
 // ***************************************************************************************************************************************************/
 
+// Modified from webcola library
 
 function myRouter(nodes, margin) {
     nodes.forEach(function (d) {
         d.routerNode = {
+            name: d.name,
             bounds: d.bounds.inflate(-margin)
         };
     });
@@ -451,17 +379,33 @@ function myRouter(nodes, margin) {
 }
 
 
+
+function myGridLayout(graph, size) {
+
+    return {
+        cola: new cola.Layout()
+            .convergenceThreshold(1e-3)
+            .size(size)
+            .avoidOverlaps(true)
+            .nodes(graph.nodes)
+            .links(graph.links)
+            .linkDistance(100)
+            .symmetricDiffLinkLengths(50)
+            .start(50, 0, 100, 0, false)
+    };
+}
+
 // ************************************************************************************************************************8
 
 function buildDataFromDot(dotString){
     const digraph = graphDotLib.read(dotString);
 
-    const dnodeIds = digraph.nodes();
-    const nodes = new Array(dnodeIds.length);
-    dnodeIds.forEach(function (dnodeId, i) {
-        var v = nodes[i] = digraph.node(dnodeId);
-        console.log(v)
-        v.id = dnodeId;
+    const nodeNames = digraph.nodes();
+    const nodes = new Array(nodeNames.length);
+    nodeNames.forEach(function (name, i) {
+        var v = nodes[i] = digraph.node(name);
+        v.id = i;
+        v.name = name;
     });
         
 
@@ -474,10 +418,9 @@ function buildDataFromDot(dotString){
         edges.push({ source: digraph.node(edge.v).id, target: digraph.node(edge.w).id });
 
     });
-
     return {
-        nodes :nodes,
-        links :edges
+        nodes: nodes,
+        links: edges
     }
 
 }

@@ -3,13 +3,13 @@ import React, {Component} from 'react';
 
 import {OrthoNetwork} from '../lib';
 
-
-
+const DEMO_DOT_FILE = 'demo1.dot'
 export default class App extends Component {
 
     constructor() {
         super();
-        this.state = {
+
+          this.state = {
             data: {
                 nodes: [
                     {id: 'mayo'},
@@ -25,11 +25,15 @@ export default class App extends Component {
                     {source: 'bread', target: 'peanut butter'},
                     {source: 'bread', target: 'jelly'},
                     {source: 'peanut butter', target: 'jelly'}
-                ],
-                dot : 'hello'
+                ]
             },
             dataVersion: 1
         };
+
+        if (DEMO_DOT_FILE){
+            this.loadFromDot();
+        }
+            
         this.setProps = this.setProps.bind(this);
      //   this.mutateData = this.mutateData.bind(this);
 
@@ -65,8 +69,7 @@ export default class App extends Component {
 
         return (
             <div>
-                <h2>Network Graph Demo</h2>
-                <p>Click a node to show its links</p>
+                <h2>OrthoNetwork Graph</h2>
                 <OrthoNetwork
                     setProps={this.setProps}
                     {...this.state}
@@ -74,6 +77,22 @@ export default class App extends Component {
                 <div style={{whiteSpace: 'pre-line'}}>{selectionInfo()}</div>
             </div>
         )
+    }
+
+    loadFromDot() {
+        const {data, dataVersion} = this.state;
+        const self = this;
+
+
+         fetch('/demo_dot_networks/' + DEMO_DOT_FILE)
+         .then((r) => r.text())
+         .then((dot) =>{
+             data.dot = dot;
+             console.log(dot)
+             self.setState({data, dataVersion: dataVersion + 1});
+         })  
+
+
     }
 
     mutateData() {
